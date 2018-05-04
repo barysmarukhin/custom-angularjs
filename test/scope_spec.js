@@ -98,6 +98,7 @@ describe('digest', function() {
 
     it('may have watchers that omit the listener function', function() {
        var watchFn = jasmine.createSpy().and.returnValue('some value');
+
        scope.$watch(watchFn);
        scope.$digest();
        expect(watchFn).toHaveBeenCalled();
@@ -131,4 +132,28 @@ describe('digest', function() {
        scope.$digest();
        expect(scope.initial).toBe('B.');
     });
+
+    it('gives up on the watches after 10 iterations', function() {
+        scope.counterA = 0;
+        scope.counterB = 0;
+
+        scope.$watch(
+            function(scope) {
+                return scope.counterA;
+            },
+            function(newValue, oldValue, scope) {
+                scope.counterB++;
+            }
+        );
+        scope.$watch(
+            function(scope) {
+                return scope.counterB
+            },
+            function(newValue, oldValue, scope) {
+                scope.counterA++;
+            }
+        );
+
+        expect(scope.$digest()).toThrow();
+    })
 });
