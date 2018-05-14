@@ -50,7 +50,10 @@ Scope.prototype.$$areEqual = function(newValue, oldValue, valueEq) {
     if (valueEq) {
         return _.isEqual(newValue, oldValue);
     } else {
-        return newValue === oldValue;
+        return (newValue === oldValue ||
+            typeof newValue === 'number' && typeof oldValue === 'number' &&
+            isNaN(newValue) && isNaN(oldValue)
+        );
     }
 };
 
