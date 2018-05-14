@@ -31,7 +31,7 @@ describe('digest', function() {
 
     it('calls the watch function with the scope as the argument', function() {
         var watchFn = jasmine.createSpy();
-        var listenerFn = function() {}
+        var listenerFn = function() {};
 
         scope.$watch(watchFn, listenerFn);
 
@@ -45,7 +45,7 @@ describe('digest', function() {
         scope.counter = 0;
         scope.$watch(
            function(scope) {
-               return scope.someValue
+               return scope.someValue;
            },
            function(newValue, oldValue, scope) {
                scope.counter++;
@@ -148,7 +148,7 @@ describe('digest', function() {
         );
         scope.$watch(
             function(scope) {
-                return scope.counterB
+                return scope.counterB;
             },
             function(newValue, oldValue, scope) {
                 scope.counterA++;
@@ -156,7 +156,7 @@ describe('digest', function() {
         );
 
         expect(scope.$digest()).toThrow();
-    })
+    });
 
     it('ends the digest when the last watch is clean', function() {
        var watchExecutions = 0;
@@ -195,14 +195,34 @@ describe('digest', function() {
                         return scope.aValue;
                     },
                     function(newValue, oldValue, scope) {
-                        scope.counter++
+                        scope.counter++;
                     }
-                )
+                );
             }
         );
 
         scope.$digest();
 
         expect(scope.counter).toBe(1);
-    })
+    });
+
+    it('compares based on value if enabled', function() {
+        scope.counter = 0;
+        scope.aValue = [1,2,3];
+        scope.$watch(
+            function(scope) {
+                return scope.aValue;
+            },
+            function(newValue, oldValue, scope) {
+                return scope.counter++;
+            },
+            true
+        );
+        scope.$digest();
+        expect(scope.counter).toBe(1);
+        scope.aValue.push(4);
+        scope.$digest();
+        expect(scope.counter).toBe(2);
+    });
+
 });
