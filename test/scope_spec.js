@@ -2,7 +2,7 @@ var Scope = require('../src/scope');
 var _ = require('lodash');
 
 describe('Scope', function() {
-   it('can be constructed and used as an object', function() {
+   it("can be constructed and used as an object", function() {
        var scope = new Scope();
        scope.aProperty = 1;
        expect(scope.aProperty).toBe(1);
@@ -16,7 +16,7 @@ describe('digest', function() {
         scope = new Scope();
     });
 
-    it('calls the listener function of a watch on first $digest', function() {
+    it("calls the listener function of a watch on first $digest", function() {
         var watchFn = function() {
             return 'wat';
         };
@@ -29,7 +29,7 @@ describe('digest', function() {
         expect(listenerFn).toHaveBeenCalled();
     });
 
-    it('calls the watch function with the scope as the argument', function() {
+    it("calls the watch function with the scope as the argument", function() {
         var watchFn = jasmine.createSpy();
         var listenerFn = function() {};
 
@@ -40,7 +40,7 @@ describe('digest', function() {
         expect(watchFn).toHaveBeenCalledWith(scope);
     });
 
-    it('calls the listener function when the watched value changed', function() {
+    it("calls the listener function when the watched value changed", function() {
         scope.someValue = 'a';
         scope.counter = 0;
         scope.$watch(
@@ -66,7 +66,7 @@ describe('digest', function() {
         expect(scope.counter).toBe(2);
     });
 
-    it('calls listener when watch value is first undefined', function() {
+    it("calls listener when watch value is first undefined", function() {
        scope.counter = 0;
        scope.$watch(
            function(scope) {
@@ -80,7 +80,7 @@ describe('digest', function() {
        expect(scope.counter).toBe(1);
     });
 
-    it('calls listener with new value as old value first time', function() {
+    it("calls listener with new value as old value first time", function() {
         var oldValueGiven;
 
         scope.someValue = 123;
@@ -97,7 +97,7 @@ describe('digest', function() {
 
     });
 
-    it('may have watchers that omit the listener function', function() {
+    it("may have watchers that omit the listener function", function() {
        var watchFn = jasmine.createSpy().and.returnValue('some value');
 
        scope.$watch(watchFn);
@@ -105,7 +105,7 @@ describe('digest', function() {
        expect(watchFn).toHaveBeenCalled();
     });
 
-    it('triggers same watchers in the same digest', function() {
+    it("triggers same watchers in the same digest", function() {
        scope.name = 'jane';
        scope.$watch(
            function(scope) {
@@ -134,7 +134,7 @@ describe('digest', function() {
        expect(scope.initial).toBe('B.');
     });
 
-    xit('gives up on the watches after 10 iterations', function() {
+    xit("gives up on the watches after 10 iterations", function() {
         scope.counterA = 0;
         scope.counterB = 0;
 
@@ -158,7 +158,7 @@ describe('digest', function() {
         expect(scope.$digest()).toThrow();
     });
 
-    it('ends the digest when the last watch is clean', function() {
+    it("ends the digest when the last watch is clean", function() {
        var watchExecutions = 0;
 
        scope.array = _.range(100);
@@ -181,7 +181,7 @@ describe('digest', function() {
         expect(watchExecutions).toBe(301);
     });
 
-    it('does not end digest so that new watches are not run', function() {
+    it("does not end digest so that new watches are not run", function() {
         scope.aValue = 'abc';
         scope.counter = 0;
 
@@ -206,7 +206,7 @@ describe('digest', function() {
         expect(scope.counter).toBe(1);
     });
 
-    it('compares based on value if enabled', function() {
+    it("compares based on value if enabled", function() {
         scope.counter = 0;
         scope.aValue = [1,2,3];
         scope.$watch(
@@ -225,7 +225,7 @@ describe('digest', function() {
         expect(scope.counter).toBe(2);
     });
 
-    it('correctly handles NaNs', function() {
+    it("correctly handles NaNs", function() {
         scope.number = 0/0; //NaN
         scope.counter = 0;
         scope.$watch(
@@ -243,7 +243,7 @@ describe('digest', function() {
         expect(scope.counter).toBe(1);
     });
 
-    it("it executes eval'ed function and returns result", function() {
+    it("executes eval'ed function and returns result", function() {
         scope.aValue = 42;
         var result = scope.$eval(function(scope){
             return scope.aValue;
@@ -252,12 +252,34 @@ describe('digest', function() {
         expect(result).toBe(42);
     });
 
-    it('passes the second $eval argument straight through', function() {
+    it("passes the second $eval argument straight through", function() {
         scope.aValue = 42;
         var result = scope.$eval(function(scope, arg) {
             return scope.aValue + arg;
         }, 2);
 
         expect(result).toBe(44);
+    });
+
+    it("executes $appli'ed function and starts the digest", function() {
+        scope.aValue = 'someValue';
+        scope.counter = 0;
+
+        scope.$watch(
+            function(scope) {
+                return scope.aValue;
+            },
+            function(newValue, oldValue, scope) {
+                return scope.counter++;
+            }
+        );
+
+        scope.$digest();
+        expect(scope.counter).toBe(1);
+
+        scope.$apply(function(scope) {
+            scope.aValue = 'someOtherValue';
+        });
+        expect(scope.counter).toBe(2);
     });
 });
