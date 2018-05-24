@@ -566,4 +566,86 @@ describe('digest', function() {
         scope.$digest();
         expect(scope.watchedValue).toBe('changed value');
     });
+
+    it("catches exceptions in watch functions and continues", function() {
+        scope.aValue = 'abc';
+        scope.counter = 0;
+
+        scope.$watch(
+            function() {
+                throw 'error';
+            },
+            function(newValue, oldValue, scope){}
+        );
+
+        scope.$watch(
+            function(scope) {
+                return scope.aValue
+            },
+            function(newValue, oldValue, scope) {
+                scope.counter++
+            }
+        );
+
+        scope.$digest();
+        expect(scope.counter).toBe(1);
+    });
+
+    it("catches exceptions in listener functions and continues", function() {
+        scope.aValue = 'abc';
+        scope.counter = 0;
+
+        scope.$watch(
+            function(scope) {
+                return scope.aValue
+            },
+            function(){
+                throw 'error'
+            }
+        );
+
+        scope.$watch(
+            function(scope) {
+                return scope.aValue
+            },
+            function(newValue, oldValue, scope) {
+                scope.counter++
+            }
+        );
+
+        scope.$digest();
+        expect(scope.counter).toBe(1);
+    });
+
+    it('catches exceptions in $applyAsync', function(done) {
+        scope.$applyAsync(function() {
+            throw 'error'
+        });
+        scope.$applyAsync(function() {
+            throw 'error'
+        });
+        scope.$applyAsync(function() {
+            scope.applied = true
+        });
+
+        setTimeout(function() {
+            expect(scope.applied).toBe(true);
+            done();
+        },50);
+    });
+
+    it('catches exceptions in $$postDigest', function() {
+        var didRun = false;
+
+        scope.$$postDigest(function() {
+            throw 'error';
+        });
+
+        scope.$$postDigest(function() {
+            didRun = true;
+        });
+
+        scope.$digest();
+        expect(didRun).toBe(true);
+    });
 });
