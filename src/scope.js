@@ -41,13 +41,11 @@ Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
 Scope.prototype.$$digestOnce = function() {
     var self = this;
     var oldValue, newValue, dirty;
-
     _.forEachRight(this.$$watchers, function(watcher) {
         try {
             if (watcher) {
                 newValue = watcher.watchFn(self);
                 oldValue = watcher.last;
-
                 if(!self.$$areEqual(newValue, oldValue, watcher.valueEq)) {
                     self.$$lastDirtyWatch = watcher;
                     watcher.last = watcher.valueEq ? _.cloneDeep(newValue) : newValue;
@@ -88,7 +86,6 @@ Scope.prototype.$digest = function() {
         clearTimeout(this.$$applyAsyncId);
         this.$$flushApplyAsync();
     }
-
     do {
         while (this.$$asyncQueue.length) {
             try {
@@ -227,7 +224,15 @@ Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
         _.forEach(destroyFunctions, function(destroyFunction) {
             destroyFunction();
         })
-    }
+    };
+};
+
+Scope.prototype.$new = function() {
+    var ChildScope = function() {}
+    ChildScope.prototype = this;
+    var child = new ChildScope();
+
+    return child
 };
 
 module.exports = Scope;
