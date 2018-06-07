@@ -939,7 +939,7 @@ describe('digest', function() {
             expect(child.aValue).toEqual([1,2,3,4]);
         });
 
-        fit('can watch a property in the parent', function() {
+        it('can watch a property in the parent', function() {
             var parent = new Scope();
             var child = parent.$new();
 
@@ -987,6 +987,46 @@ describe('digest', function() {
             expect(aa.anotherValue).toBeUndefined();
             expect(aaa.anotherValue).toBeUndefined();
 
+        });
+
+        it("shadows a parent property with the same name", function() {
+            var parent = new Scope();
+            var child = parent.$new();
+
+            parent.name = 'Joe';
+            child.name = 'Jill';
+
+            expect(parent.name).toBe('Joe');
+            expect(child.name).toBe('Jill');
+        });
+
+        it("does not shadow members of parent scope's attributes", function() {
+            var parent = new Scope();
+            var child = parent.$new();
+
+            parent.user = { name: 'Joe' };
+            child.user.name = 'Jill';
+
+            expect(parent.user.name).toBe('Jill');
+            expect(child.user.name).toBe('Jill');
+        });
+
+        it("does not digest its parent(s)", function() {
+            var parent = new Scope();
+            var child = parent.$new();
+
+            parent.aValue = 'abc';
+            parent.$watch(
+                function(scope) {
+                    return scope.aValue
+                },
+                function(newValue, oldValue, scope) {
+                    scope.aValueWas = newValue;
+                }
+            );
+
+            scope.$digest();
+            expect(child.aValueWas).toBeUndefined();
         });
     })
 });
