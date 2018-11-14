@@ -12,7 +12,8 @@ function Scope() {
     this.$$asyncQueue = [];
     this.$$applyAsyncQueue = [];
     this.$$children = [];
-    this.$$lastDirtyWatch = null;
+    this.$root = this;
+    this.$root.$$lastDirtyWatch = null;
     this.$$applyAsyncId = null;
     this.$$phase = null;
 }
@@ -27,16 +28,16 @@ Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
     };
 
     this.$$watchers.unshift(watcher);
-    this.$$lastDirtyWatch = null;
+    this.$root.$$lastDirtyWatch = null;
 
     return function() {
         var index = self.$$watchers.indexOf(watcher);
 
         if(index >= 0) {
             self.$$watchers.splice(index, 1);
-            self.$$lastDirtyWatch = null;
+            self.$root.$$lastDirtyWatch = null;
         }
-    }
+    };
 };
 
 Scope.prototype.$$digestOnce = function() {
@@ -51,13 +52,13 @@ Scope.prototype.$$digestOnce = function() {
                     newValue = watcher.watchFn(self);
                     oldValue = watcher.last;
                     if(!self.$$areEqual(newValue, oldValue, watcher.valueEq)) {
-                        self.$$lastDirtyWatch = watcher;
+                        self.$root.$$lastDirtyWatch = watcher;
                         watcher.last = watcher.valueEq ? _.cloneDeep(newValue) : newValue;
                         watcher.listenerFn(newValue,
                             oldValue === initWatchVal ? newValue: oldValue,
                             scope);
                         dirty = true;
-                    } else if(watcher === self.$$lastDirtyWatch) {
+                    } else if(watcher === self.$root.$$lastDirtyWatch) {
                         return false;
                     }
                 }
@@ -85,7 +86,7 @@ Scope.prototype.$digest = function() {
     var ttl = 10;
     var dirty;
 
-    this.$$lastDirtyWatch = null;
+    this.$root.$$lastDirtyWatch = null;
     this.$beginPhase('$digest');
 
     if(this.$$applyAsyncId) {
@@ -129,20 +130,23 @@ Scope.prototype.$apply = function(expr) {
         return this.$eval(expr);
     } finally {
         this.$clearPhase();
-        this.$digest();
+        this.$root.$digest();
     }
 };
 
+// push async task as a callback into $$asyncQueue array
 Scope.prototype.$evalAsync = function(expr) {
     var self = this;
+
+    // schedule the digest if there isn't current state and no async tasks have been scheduled yet
     if(!this.$$phase && !this.$$asyncQueue.length) {
         setTimeout(function() {
             if(self.$$asyncQueue.length) {
-                self.$digest();
+                self.$root.$digest();
             }
         },0);
     }
-    this.$$asyncQueue.push({scope: this, expression: expr})
+    this.$$asyncQueue.push({scope: this, expression: expr});
 };
 
 Scope.prototype.$beginPhase = function(phase) {
@@ -240,7 +244,7 @@ Scope.prototype.$new = function() {
     this.$$children.push(child);
     child.$$watchers = [];
     child.$$children = [];
-    return child
+    return child;
 };
 
 Scope.prototype.$$everyScope = function(fn) {
