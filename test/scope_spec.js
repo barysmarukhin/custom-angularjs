@@ -1744,4 +1744,18 @@ describe('Scope', function() {
 		});
 
 	});
+
+	describe('Events', function() {
+		var parent;
+		var scope;
+		var child;
+		var isolatedChild;
+
+		beforeEach(function () {
+			parent = new Scope();
+			scope = parent.$new();
+			child = scope.$new();
+			isolatedChild = scope.$new(true);
+		});
+	});
 });
