@@ -21,6 +21,7 @@ function Scope() {
 	this.$$applyAsyncId = null;
 	this.$$postDigestQueue = [];
 	this.$root = this;
+	this.$$listeners = {};
 	this.$$children = [];
 	this.$$phase = null;
 }
@@ -51,9 +52,11 @@ Scope.prototype.$new = function(isolated, parent) {
 		child = new ChildScope();
 	}
 	parent.$$children.push(child);
+	child.$$listeners = {};
 	child.$$watchers = [];
 	child.$$children = [];
 	child.$parent = parent;
+
 	return child;
 };
 
@@ -353,6 +356,14 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
 	};
 
 	return this.$watch(internalWatchFn, internalListenerFn);
+};
+
+Scope.prototype.$on = function(eventName, listener) {
+	var listeners = this.$$listeners[eventName];
+	if (!listeners) {
+		this.$$listeners[eventName] = listeners = [];
+	}
+	listeners.push(listener);
 };
 
 module.exports = Scope;
